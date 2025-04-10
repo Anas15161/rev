@@ -1,0 +1,55 @@
+//Client en mode non connecté
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netdb.h>
+#include<unistd.h>
+#include<arpa/inet.h>
+#include <signal.h>
+int main()
+{
+	int sd,nb,ns,read;
+	char msgsend[255];
+	char msgrecv[255];
+	struct sockaddr_in servaddr;
+	socklen_t svrAdrSize = sizeof(servaddr); //Pour la taille de l'adresse du serveur
+
+	//création du socket en mode non connecté
+	sd=socket(AF_INET, SOCK_DGRAM, 0);
+
+	//Préparation de l'adresse du serveur
+	servaddr.sin_family= AF_INET;
+	servaddr.sin_port=1600;
+	servaddr.sin_addr.s_addr=INADDR_ANY;
+
+	printf("Port attribué %d\n", servaddr.sin_port);
+
+	if(fork()!=0)
+	{
+	do{ //boucle
+	printf("Donnez le message à envoyer : "); 
+	scanf("%s",msgsend);
+	//Envoie du message au serveur
+	if (sendto(sd, msgsend, sizeof(msgsend) , 0, (struct sockaddr *) &servaddr, sizeof(servaddr) )<0)
+		printf("Problème d'envoie");
+	   } while(strcmp(msgsend,"exit")!=0);
+		 	close(sd);
+		 	exit(0);
+	 }
+	else 
+	{
+	do{
+	//reception de la confirmation par le serveur
+	if (recvfrom(sd, msgrecv, sizeof(msgrecv),0, (struct sockaddr *) &servaddr, &svrAdrSize) < 0 )
+			printf("Problème de reception");
+		printf("Message reçu : %s du port %d du serveur %s \n", msgrecv, ntohs(servaddr.sin_port), inet_ntoa(servaddr.sin_addr));
+	}while(strcmp(msgsend,"exit")!=0); // pour l'arret de la boucle
+
+	//Fermeture du socket
+	kill(getppid(), 9);
+	exit(0);
+	close(sd);
+	}
+}

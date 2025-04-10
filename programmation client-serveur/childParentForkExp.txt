@@ -1,0 +1,85 @@
+What code both the parent and child processes run after fork():
+
+Qst:
+i want you to show me in an example of a program that uses fork the code
+that will end up a part of the parent and the one of the child
+
+ChatGPT said:
+Here is an example program that demonstrates how the parent and 
+child processes execute different parts of the code after a fork().
+
+Example Code
+c
+
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
+int main() {
+    pid_t pid;  // Variable to hold the process ID
+
+    printf("Before fork()\n");
+
+    pid = fork();  // Create a new process
+
+    if (pid < 0) {
+        // Error occurred during fork
+        perror("fork failed");
+        return 1;
+    } else if (pid == 0) {
+        // Child process code
+        printf("Child process: PID = %d, Parent PID = %d\n", getpid(), getppid());
+    } else {
+        // Parent process code
+        printf("Parent process: PID = %d, Child PID = %d\n", getpid(), pid);
+        wait(NULL);  // Wait for the child process to finish
+        printf("Parent process: Child finished\n");
+    }
+
+    printf("This line is executed by both processes\n");
+
+    return 0;
+}
+
+
+Explanation:
+Before the fork() Call:
+Both the parent and the child execute the code up to the fork() call once.
+
+At the fork() Call:
+The operating system creates a new child process.
+Both the parent and the child continue executing from the point where fork() was called, but their execution paths diverge based on the return value of fork().
+Return Value of fork():
+
+In the parent process, fork() returns the process ID (PID) of the child (a positive number).
+In the child process, fork() returns 0.
+If fork() fails, it returns -1, and the parent process handles the error.
+Parts of the Code:
+
+Child Process: Executes the block where if (pid == 0) is true.
+Parent Process: Executes the block where if (pid > 0) is true.
+Shared Code: Any code outside these conditionals is executed by both processes.
+Output Example
+
+When you run the program, the output might look like this:
+
+Before fork():
+
+Parent process: PID = 12345, Child PID = 12346
+Child process: PID = 12346, Parent PID = 12345
+Parent process: Child finished
+This line is executed by both processes
+This line is executed by both processes
+What Happens Here?
+Both the parent and child processes execute the printf before the fork().
+
+After the fork():
+
+The child process executes the block under if (pid == 0).
+The parent process executes the block under if (pid > 0) and waits for the child to finish.
+The final printf outside the conditional is executed by both processes.
+
+
+This example clearly separates the parent and child execution paths 
+while also demonstrating shared execution outside of conditional logic.

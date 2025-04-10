@@ -1,0 +1,55 @@
+/*
+server
+
+1. the server receive the name of the file from the client
+2. open the file to write inside (in write mode)
+3. the server receive the content line by line 
+	for each line, the server write the message inside the file
+4. the server recive a specific message from the client to stop
+5. the server save the file and close the connection
+*/
+
+#include<stdio.h>
+#include<string.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netdb.h>
+#include<unistd.h>
+
+int main()
+{
+int sd,nb,cnx,read;
+char filename[255];
+char msg_recv[255];
+struct sockaddr_in servaddr;
+FILE *f;
+
+sd=socket(AF_INET, SOCK_STREAM, 0);
+
+servaddr.sin_family= AF_INET;
+servaddr.sin_port=2225;
+servaddr.sin_addr.s_addr=INADDR_ANY;
+
+nb = bind(sd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+
+listen(sd,2);
+
+cnx= accept(sd,0,0);
+recv(cnx, filename, sizeof(filename),0);
+
+f = fopen(filename,"w");
+printf("Creation of a file : %s\n:", filename);
+strcpy(msg_recv,"");
+
+while((read = recv(cnx, msg_recv, sizeof(msg_recv),0))>0)
+{
+	printf("Message received: %s.\n", msg_recv);
+	if(strcmp(msg_recv,"EOF")) fputs(msg_recv, f);
+	else break;
+	strcpy(msg_recv,"");
+}
+
+fclose(f);
+close(cnx);
+close(sd);
+}

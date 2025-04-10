@@ -1,0 +1,48 @@
+//Serveur en mode non connecté
+#include<stdio.h>
+#include<string.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netdb.h>
+#include<unistd.h>
+#include<arpa/inet.h>
+
+int main()
+{
+	int sd,nb;
+	int nbmsg=0;
+
+	char msgrecv[255];
+	char msgconfirmation[10]="Bien reçu";
+
+	struct sockaddr_in servaddr;
+	struct sockaddr_in cltaddr;
+	socklen_t cltAdresseSize = sizeof(cltaddr);
+	
+	//Création du socket en mode non connecté
+	if((sd=socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+		printf("Problème de création de Socket");
+
+	//Préparation de l'adresse du serveur
+	servaddr.sin_family= AF_INET;
+	servaddr.sin_port=1600;
+	servaddr.sin_addr.s_addr=INADDR_ANY;
+
+	//Attachement du socket à l'adresse du serveur
+	if((nb = bind(sd, (struct sockaddr *)&servaddr, sizeof(servaddr))) < 0 )
+		printf("Problème d'attachement du socket");
+	else printf("bind ok \n");
+	
+	do{ //boucle
+		//reception d'un message du client
+		if (recvfrom(sd, msgrecv, sizeof(msgrecv),0, (struct sockaddr *) &cltaddr, &cltAdresseSize) < 0 )
+			printf("Problème de reception");
+		nbmsg++; //compteur pour compter le nombre de message
+		printf("Message reçu (%d) : %s du port %d de l'adresse %s \n",nbmsg, msgrecv, ntohs(cltaddr.sin_port), inet_ntoa(cltaddr.sin_addr));
+		//envoie de la confirmation au client
+		sendto(sd, msgconfirmation, sizeof(msgconfirmation), 0, (struct sockaddr *) &cltaddr, cltAdresseSize);
+	}while(strcmp(msgrecv,"exit")!=0);//pour l'arret de la boucle
+
+	//Fermeture du socket
+	close(sd);
+}

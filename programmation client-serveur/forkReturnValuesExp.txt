@@ -1,0 +1,13 @@
+but isnt the pid of a chidl process 0? so why not just write 0
+
+ChatGPT said:
+
+The PID of a child process is not actually 0. 
+The confusion arises because of the way the fork() system call works:
+
+In the parent process, the fork() call returns the PID of the child process 
+(a positive integer).
+In the child process, the fork() call returns 0 to indicate that it is running
+ as the child.
+The child process has its own unique PID assigned by the operating system, 
+but the value 0 returned by fork() is just a signal to the child process itself.

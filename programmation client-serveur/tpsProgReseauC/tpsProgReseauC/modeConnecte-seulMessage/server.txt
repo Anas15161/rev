@@ -1,0 +1,46 @@
+#include<stdio.h>
+#include<netdb.h>
+#include<string.h>
+#include <unistd.h>
+
+int main()
+{
+	int sd, cnx, sb, sl, read;
+	char msg[100];
+	struct sockaddr_in adresse_srv;
+
+	sd=socket(AF_INET, SOCK_STREAM, 0);
+	if (sd<0)
+	{printf ("erreur de création\n"); }
+
+	adresse_srv.sin_family = AF_INET;
+	adresse_srv.sin_port = 1230;
+	adresse_srv.sin_addr.s_addr = INADDR_ANY;
+	
+	sb = bind (sd, (struct sockaddr *) &adresse_srv, sizeof(adresse_srv));
+	if(sb<0)
+		printf ("erreur bind\n"); 
+	else 
+		printf ("bind ok\n");
+	
+	sl = listen(sd,2);
+	if(sl<0)
+		printf ("erreur listen\n"); 
+	else 
+		printf ("listen ok\n");
+
+	cnx = accept(sd, 0, 0);
+	if(cnx<0)
+		printf ("erreur d'accept\n"); 
+	else 
+		printf ("Accept ok\n");
+	
+	while(recv(cnx, msg, sizeof(msg), 0)>0)
+	{
+		printf("Message reçu: %s", msg);
+	}
+
+	close(cnx);
+
+	close(sd);
+}

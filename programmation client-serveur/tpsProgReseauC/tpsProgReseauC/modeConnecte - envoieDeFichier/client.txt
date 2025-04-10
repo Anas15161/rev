@@ -1,0 +1,48 @@
+/*
+client
+
+1. the client send the name of the file to the server
+2. open the file to send (in read mode)
+3. the client read the content line by line 
+	for each line, the client send the line
+4. the client send a specific message to the server to stop
+5. the client close the connection
+*/
+#include<stdio.h>
+#include<string.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<netdb.h>
+#include<unistd.h>
+
+int main()
+{
+int sd;
+char line[255];
+char filename[255];
+FILE *f;
+struct sockaddr_in servaddr;
+
+sd=socket(AF_INET, SOCK_STREAM, 0);
+
+servaddr.sin_family= AF_INET;
+servaddr.sin_port=2225;
+servaddr.sin_addr.s_addr=INADDR_ANY;
+
+connect(sd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+
+printf("Enter the name of file to copy:"); scanf("%s",filename);
+send(sd, filename, strlen(filename),0);
+
+f = fopen(filename, "r+");
+
+while(fgets(line, sizeof(line), f))
+	{
+		printf("the line to send :%s\n", line);
+		send(sd, line, strlen(line),0);
+	}
+send(sd, "EOF", strlen("EOF"), 0);
+
+fclose(f);
+close(sd);
+}
